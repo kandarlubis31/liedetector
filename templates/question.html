@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>{{ question.text }}</h2>
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="question_id" value="{{ question.id }}">
+    <input type="hidden" name="start_time" value="{{ start_time }}">
+    <textarea name="answer" required></textarea>
+    <button type="submit">Submit</button>
+</form>
+{% endblock %}

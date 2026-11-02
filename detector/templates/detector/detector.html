@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lie Detection System</title>
+    <style>
+        :root {
+            --truth-color: #4CAF50;
+            --lie-color: #F44336;
+            --neutral-color: #2196F3;
+            --warning-color: #FFC107;
+            --dark-bg: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        #container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--dark-bg);
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        h1:after {
+            content: "";
+            display: block;
+            width: 100px;
+            height: 4px;
+            background: var(--neutral-color);
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+
+        #video-container {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        #video-feed {
+            width: 100%;
+            display: block;
+            background: #000;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #start-btn {
+            background-color: var(--neutral-color);
+            color: white;
+        }
+
+        #start-btn:hover {
+            background-color: #1976D2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        #start-btn:disabled {
+            background-color: #BBDEFB;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #analysis-status {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 18px;
+            min-height: 27px;
+        }
+
+        #results {
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            transition: all 0.5s;
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+        }
+
+        #results.visible {
+            opacity: 1;
+            height: auto;
+            padding: 20px;
+        }
+
+        #results.truthful {
+            background-color: rgba(76, 175, 80, 0.1);
+            border-left: 5px solid var(--truth-color);
+        }
+
+        #results.lying {
+            background-color: rgba(244, 67, 54, 0.1);
+            border-left: 5px solid var(--lie-color);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .confidence-meter {
+            height: 15px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .confidence-level {
+            height: 100%;
+            transition: width 0.5s;
+            border-radius: 10px;
+        }
+
+        .indicators {
+            margin-top: 20px;
+        }
+
+        .indicator {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+        }
+
+        .indicator-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--neutral-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            color: var(--lie-color);
+            font-weight: bold;
+            padding: 10px;
+            background: rgba(244, 67, 54, 0.1);
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        #real-time-feedback {
+            margin-top: 20px;
+            background: rgba(33, 150, 243, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .metric {
+            margin-bottom: 15px;
+        }
+
+        .metric h3 {
+            margin: 0 0 5px 0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+        }
+
+        .bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .level {
+            height: 100%;
+            width: 0%;
+            background: var(--neutral-color);
+            transition: width 0.3s;
+            border-radius: 4px;
+        }
+
+        .score {
+            font-weight: bold;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: var(--neutral-color);
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .calibration-message {
+            text-align: center;
+            padding: 10px;
+            background: var(--warning-color);
+            color: white;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .analysis-time {
+            text-align: right;
+            font-size: 14px;
+            color: #777;
+            margin-top: 10px;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            color: var(--dark-bg);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            #container {
+                padding: 15px;
+            }
+            
+            #video-feed {
+                height: auto;
+            }
+            
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <h1>Lie Detection System</h1>
+
+        <div id="video-container">
+            <img src="{% url 'video_feed' %}" width="640" height="480" id="video-feed">
+        </div>
+
+        <div id="analysis-status"></div>
+
+        <div id="controls">
+            <button id="start-btn">START ANALYSIS</button>
+        </div>
+
+        <div id="real-time-feedback">
+            <div class="metric" id="eye-metric">
+                <h3>Eye Behavior <span class="score">0%</span></h3>
+                <div class="bar">
+                    <div class="level"></div>
+                </div>
+            </div>
+            <div class="metric" id="lip-metric">
+                <h3>Lip Movement <span class="score">0%</span></h3>
+                <div class="bar">
+                    <div class="level"></div>
+                </div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="analysis-progress"></div>
+            </div>
+        </div>
+
+        <div id="results">
+            <!-- Results will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        const startBtn = document.getElementById('start-btn');
+        const resultsDiv = document.getElementById('results');
+        const videoFeed = document.getElementById('video-feed');
+        const analysisStatus = document.getElementById('analysis-status');
+        let analysisInterval;
+        let resultsInterval;
+        let startTime;
+        let calibrationComplete = false;
+
+        // Handle video feed errors
+        videoFeed.onerror = function() {
+            showError("Error: Video feed cannot be loaded. Please check camera permissions and refresh the page.");
+            startBtn.disabled = true;
+        };
+
+        startBtn.addEventListener('click', async () => {
+            startBtn.disabled = true;
+            startBtn.innerHTML = '<span class="loading"></span> ANALYZING...';
+            startTime = new Date().getTime();
+            
+            // Reset UI
+            resultsDiv.className = "";
+            resultsDiv.innerHTML = "";
+            document.getElementById('analysis-progress').style.width = "0%";
+            
+            // Show calibration message
+            showMessage("<span class='loading'></span> Calibrating system... Please maintain neutral face");
+            
+            try {
+                // Start analysis
+                const response = await fetch('/start_analysis/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to start analysis');
+                }
+
+                // After 5 seconds, calibration is complete
+                setTimeout(() => {
+                    calibrationComplete = true;
+                    showMessage("<span class='loading'></span> Analyzing facial patterns...");
+                    
+                    // Start progress bar animation
+                    animateProgressBar();
+                    
+                    // Start polling for results
+                    resultsInterval = setInterval(updateResults, 1000);
+                }, 5000);
+
+            } catch (error) {
+                console.error("Error:", error);
+                showError(error.message || 'Failed to start analysis');
+                resetAnalysis();
+            }
+        });
+
+        function animateProgressBar() {
+            const progressBar = document.getElementById('analysis-progress');
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                } else {
+                    width++;
+                    progressBar.style.width = width + "%";
+                    
+                    // Update elapsed time
+                    const elapsedSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
+                    analysisStatus.innerHTML = `Analysis time: ${elapsedSeconds}s`;
+                }
+            }, 150); // 150ms * 100 = 15 seconds total
+        }
+
+        async function updateResults() {
+            try {
+                const response = await fetch('/get_results/');
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Update real-time metrics
+                updateMetrics(data);
+
+                // If we have complete results
+                if (data.is_lying !== undefined && calibrationComplete) {
+                    // Wait at least 15 seconds total (5s calibration + 10s analysis)
+                    const elapsed = (new Date().getTime() - startTime) / 1000;
+                    if (elapsed >= 15) {
+                        clearInterval(resultsInterval);
+                        displayFinalResults(data);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching results:", error);
+                showError("Error getting results: " + error.message);
+                clearInterval(resultsInterval);
+                resetAnalysis();
+            }
+        }
+
+        function updateMetrics(data) {
+            // Update eye metric
+            const eyeConfidence = Math.round((data.metrics?.eye_blink?.confidence || 0) * 100);
+            document.getElementById('eye-metric').querySelector('.score').textContent = `${eyeConfidence}%`;
+            document.getElementById('eye-metric').querySelector('.level').style.width = `${eyeConfidence}%`;
+            
+            // Update lip metric
+            const lipConfidence = Math.round((data.metrics?.lip_movement?.confidence || 0) * 100);
+            document.getElementById('lip-metric').querySelector('.score').textContent = `${lipConfidence}%`;
+            document.getElementById('lip-metric').querySelector('.level').style.width = `${lipConfidence}%`;
+            
+            // Color indicators based on thresholds
+            const eyeLevel = document.getElementById('eye-metric').querySelector('.level');
+            const lipLevel = document.getElementById('lip-metric').querySelector('.level');
+            
+            eyeLevel.style.backgroundColor = eyeConfidence > 50 ? var(--lie-color) : var(--truth-color);
+            lipLevel.style.backgroundColor = lipConfidence > 50 ? var(--lie-color) : var(--truth-color);
+        }
+
+        function displayFinalResults(data) {
+            const confidencePercent = Math.round(data.confidence * 100);
+            const elapsedSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
+
+            if (data.is_lying) {
+                resultsDiv.className = "visible lying";
+                resultsDiv.innerHTML = `
+                    <div class="result-header">
+                        <span class="result-icon">⚠️</span>
+                        <h2>POTENTIAL DECEPTION DETECTED</h2>
+                    </div>
+                    
+                    <div class="confidence-meter">
+                        <div class="confidence-level" style="width: ${confidencePercent}%; background-color: var(--lie-color);"></div>
+                    </div>
+                    <p>Confidence Level: <span class="metric-value">${confidencePercent}%</span></p>
+                    
+                    <div class="indicators">
+                        <h3>Behavioral Indicators:</h3>
+                        ${data.metrics.eye_blink.is_lying ? `
+                        <div class="indicator">
+                            <span class="indicator-dot" style="background-color: var(--lie-color);"></span>
+                            <span>Abnormal eye behavior (${Math.round(data.metrics.eye_blink.confidence * 100)}% confidence)</span>
+                        </div>
+                        ` : ''}
+                        
+                        ${data.metrics.lip_movement.is_lying ? `
+                        <div class="indicator">
+                            <span class="indicator-dot" style="background-color: var(--lie-color);"></span>
+                            <span>Suspicious lip activity (${Math.round(data.metrics.lip_movement.confidence * 100)}% confidence)</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="analysis-time">Analysis duration: ${elapsedSeconds} seconds</div>
+                    
+                    <p style="margin-top: 15px; font-style: italic; font-size: 14px;">
+                        Note: This analysis measures stress indicators and may not always correlate with deception.
+                    </p>
+                `;
+            } else {
+                resultsDiv.className = "visible truthful";
+                resultsDiv.innerHTML = `
+                    <div class="result-header">
+                        <span class="result-icon">✓</span>
+                        <h2>NO DECEPTION INDICATORS FOUND</h2>
+                    </div>
+                    
+                    <div class="confidence-meter">
+                        <div class="confidence-level" style="width: ${confidencePercent}%; background-color: var(--truth-color);"></div>
+                    </div>
+                    <p>Confidence Level: <span class="metric-value">${confidencePercent}%</span></p>
+                    
+                    <div style="margin-top: 20px;">
+                        <p>No significant stress or deception indicators detected.</p>
+                    </div>
+                    
+                    <div class="analysis-time">Analysis duration: ${elapsedSeconds} seconds</div>
+                `;
+            }
+            
+            resetAnalysis();
+        }
+
+        function showMessage(msg) {
+            analysisStatus.innerHTML = msg;
+        }
+
+        function showError(msg) {
+            analysisStatus.innerHTML = `<div class="error-message">${msg}</div>`;
+        }
+
+        function resetAnalysis() {
+            startBtn.disabled = false;
+            startBtn.textContent = 'START ANALYSIS';
+            calibrationComplete = false;
+        }
+
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+
+</html>
