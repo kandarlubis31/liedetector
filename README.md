@@ -71,6 +71,14 @@ templates/         home, question, camera pages
   in a repo.
 - Video never leaves the machine; frames are processed locally.
 
+---
+
+## Bahasa Indonesia
+
+**liedetector** adalah aplikasi web Django yang memantau webcam dan melaporkan statistik kedipan mata serta arah pandangan selama pengguna menjawab pertanyaan. README-nya menjelaskan secara terbuka apa yang alat ini bisa dan tidak bisa simpulkan.
+
+---
+
 ## License
 
 MIT
