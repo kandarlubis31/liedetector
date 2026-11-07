@@ -18,13 +18,13 @@ Treat it as a CV experiment, not a truth machine.
 ## How it works
 
 - `detector/analysis.py` uses **dlib** (68-point landmark predictor) and computes EAR from
-  the six eye landmarks per side. A blink is counted when the ratio drops below `0.25`.
+ the six eye landmarks per side. A blink is counted when the ratio drops below `0.25`.
 - `detector/views.py` uses **MediaPipe Face Mesh** for a second, landmark-only pipeline and
-  streams annotated frames to the browser as MJPEG.
+ streams annotated frames to the browser as MJPEG.
 - There is a **10-second calibration phase** before measurement starts, so the baseline is
-  taken from the person in front of the camera rather than a fixed constant.
+ taken from the person in front of the camera rather than a fixed constant.
 - Analysis runs for a minimum of **15 seconds**; blink history is kept in a short deque so
-  the score reacts to recent behaviour instead of the whole session.
+ the score reacts to recent behaviour instead of the whole session.
 - Templates in `templates/` provide the home page, the question flow and the camera view.
 
 ## Requirements
@@ -67,9 +67,17 @@ templates/         home, question, camera pages
 ## Notes
 
 - `db.sqlite3` is committed. It contains only Django's own auth/migration tables with zero
-  users and zero sessions, so nothing personal is in it — but it is still a database file
-  in a repo.
+ users and zero sessions, so nothing personal is in it — but it is still a database file
+ in a repo.
 - Video never leaves the machine; frames are processed locally.
+
+---
+
+## Bahasa Indonesia
+
+**liedetector** adalah aplikasi web Django yang memantau webcam dan melaporkan statistik kedipan mata serta arah pandangan selama pengguna menjawab pertanyaan. README-nya menjelaskan secara terbuka apa yang alat ini bisa dan tidak bisa simpulkan.
+
+---
 
 ## License
 
